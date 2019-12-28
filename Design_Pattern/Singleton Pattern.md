@@ -182,3 +182,49 @@ print(s2)
 
 
 
+#### Monostate Singleton Pattern
+
+- 모든 객체가 같은 상태를 공유하는 패턴
+
+
+
+> #### 구현 예시
+
+```python
+class Borg:
+    __shared_state = {"1": "2"}
+    
+    def __init__(self):
+        self.x = 1
+        self.__dict__ = {}
+
+b1 = Borg()
+b2 = Borg()
+
+b2.x = 4
+
+print("b1 is :", b1)
+print("b2 is :", b2)
+
+print("b1 x: ", b1.x)
+print("b2 x: ", b2.x)
+
+print("b1 dict: ", b1.__dict__)
+print("b2 dict: ", b2.__dict__)
+```
+
+- `__dict__`: 클래스 내부 속성 변수를 dictionary 관리하는 변수
+  - `self.x` 를 선언해도 `self.__dict__` 를 사용하면 속성변수 `x` 에 접근할 수 없게된다.
+  - 이후 b2.x = 4 를 통해 x 변수를 dictionary로 관리
+- 해당 코드에서 `__shared_state` 에 있는 데이터를 dictionary로 관리하게 되고 모든 인스턴스에서 공유하게 된다.
+
+
+
+> #### 출력 결과
+
+<img width="347" alt="스크린샷 2019-12-28 오후 4 31 37" src="https://user-images.githubusercontent.com/19590371/71540545-9419c380-298f-11ea-9914-d03a8d6e8af9.png">
+
+
+
+
+
