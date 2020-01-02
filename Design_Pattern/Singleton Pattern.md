@@ -182,13 +182,22 @@ print(s2)
 
 
 
-#### Monostate Singleton Pattern
+### 3. Monostate Singleton Pattern
 
 - 모든 객체가 같은 상태를 공유하는 패턴
+- 한 객체의 데이터의 유일성을 보장할 수 있는 방법
+- 객체를 파생해도 동일한 상태를 공유
 
 
 
-> #### 구현 예시
+#### 단점
+
+- 객체가 사용되지 않더라도 메모리 공간을 차지한다
+- 생성과 소멸이 잦으며, 많은 비용이 소모된다.
+
+
+
+#### 구현 예시
 
 ```python
 class Borg:
@@ -220,11 +229,171 @@ print("b2 dict: ", b2.__dict__)
 
 
 
-> #### 출력 결과
+>##### 실행 결과
 
 <img width="347" alt="스크린샷 2019-12-28 오후 4 31 37" src="https://user-images.githubusercontent.com/19590371/71540545-9419c380-298f-11ea-9914-d03a8d6e8af9.png">
 
 
 
+#### \__new__를 사용한 구현
 
+```python
+class Book(object):
+    _shared_state = {}
+
+    def __new__(cls, *args, **kwargs):
+        obj = super(Book, cls).__new__(cls, *args, **kwargs)
+        obj.__dict__ = cls._shared_state
+        print(obj)
+
+        return obj
+
+book1 = Book() # 다른 객체이지만 상태를 공유한다.
+book2 = Book()
+
+book1.x = 1
+book2.y = 2
+
+print(book1.__dict__)
+print(book2.__dict__)
+```
+
+
+
+> ##### 실행 결과
+
+<img width="284" alt="스크린샷 2020-01-02 오후 10 42 16" src="https://user-images.githubusercontent.com/19590371/71669769-33382400-2db1-11ea-9c4b-7b9c1dad8809.png">
+
+
+
+
+
+### 4. Singleton and Meta class
+
+#### Meta class
+
+- 클래스의 클래스
+- 클래스 그 자체는 메타 클래스의 인스턴스
+- 이미 정의된 클래스를 통해 새로운 형식의 클래스 생성 가능
+  - 상속과 유사한 기능처럼 보인다
+
+
+
+#### Meta class vs Inheritance
+
+- 보통 메타 클래스는 OOP의 제약을 벗어난 구현을 위해 사용
+- 한 객체가 메타 클래스로 부터 받은 method를 호출해도 메타 클래스의 해당 메서드를 찾지 않는다.
+  - 다만 객체가 생성될 시에 메타 클래스가 미리 생성
+  - python이 인터프리터를 사용하기에 가능
+- 상속과 다르게 부모-자식관계로 묶여 있지 않으며, 서로 다른 객체
+- OOP의 제약을 벗어난 극도로 dynamic한 프로그래밍 시에 사용 추천
+  - [Stack overflow 답변](https://stackoverflow.com/questions/17801344/understanding-metaclass-and-inheritance-in-python)
+
+
+
+> ##### 예시
+
+<img width="127" alt="스크린샷 2020-01-02 오후 10 57 35" src="https://user-images.githubusercontent.com/19590371/71670480-4b10a780-2db3-11ea-8821-516de82a6914.png">
+
+- python에서 모든 것은 객체이다
+- type 클래스가 int 클래스의 메타클래스
+  - int가 type을 재정의
+
+
+
+#### python에서 클래스
+
+- 기본적으로 python에서 `class` 를 사용해 정의한 클래스는 **클래스 이면서 객체**이다
+- **클래스 그 자체**이기도 하지만 **동시에 객체**이기도 하다
+
+
+
+> ##### type을 통해 클래스의 자료형을 확인
+
+```python
+class Car:
+    pass
+
+print(type(Car))
+
+# 출력 결과
+<class 'type'>
+```
+
+- python에서 모든 클래스는 클래스 이며 `type`이라는 **클래스의 객체**이기도 하다
+
+
+
+#### type
+
+- `type` 은 python에서 자료형을 확인하는 함수이지만, 또 다른 기능으로 **클래스를 생성하는 기능이 있다**.
+- 인자를 보면 type(`name`, `bases`, `dict`)의 인자를 받는다
+  - name: 클래스 명
+  - base: 베이스 클래스
+  - dict: 속성값
+- 인자로 클래스를 이루는 정의를 받아 클래스를 반환
+  - 그리고 이 클래스는 객체가 되기도 한다
+- class Car 라는 코드는 사실상 `type` 이 실행되어 **클래스(이면서 객체)를 반환**하는 과정을 거친다.
+- 메타 클래스는 클래스의 클래스 이며 **클래스를 생성하는 클래스**이다.
+  - 즉, 메타 클래스는 **클래스 생성을 제어**할 수 있다.
+- `type` 은 메타 클래스이며, **클래스를 생성하는 메타클래스**이다.
+
+
+
+##### type을 통한 클래스 및 인스턴스 생성
+
+```python
+# type을 통해 Wing 클래스를 생성하고 A에 저장
+A = type("Wing", (), {"x": 1})
+print(A)
+print(A.__dict__)
+
+# A를 통해 Wing class의 인스턴스를 생성 후 a1에저장, 값을 확인
+a1 = A()
+print(a1.x)
+```
+
+
+
+> ##### 출력 결과
+
+<img width="567" alt="스크린샷 2020-01-02 오후 11 22 21" src="https://user-images.githubusercontent.com/19590371/71671623-da6b8a00-2db6-11ea-965c-24da63d784e7.png">
+
+
+
+#### 그래서...
+
+- 메타 클래스를 통해 클래스와 객체 생성을 제어할 수 있으며, 이는 **싱글톤을 생성**하는 용도로 사용할 수 있다는 것과 같다
+
+
+
+#### 메타 클래스를 통한 싱글턴 생성
+
+```python
+class MetaSingleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(MetaSingleton, cls).__call__(*args, **kwargs)
+
+        return cls._instances[cls]
+
+
+class Book(metaclass=MetaSingleton):
+    pass
+
+
+book1 = Book()
+book2 = Book()
+
+print(book1)
+print(book2)
+```
+
+
+
+> ##### 출력 결과
+
+<img width="272" alt="스크린샷 2020-01-02 오후 11 43 24" src="https://user-images.githubusercontent.com/19590371/71672561-b1002d80-2db9-11ea-8a7e-e55dd5947b80.png">
 
