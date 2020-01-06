@@ -372,7 +372,9 @@ print(a1.x)
 ```python
 class MetaSingleton(type):
     _instances = {}
-
+		
+    # 클래스를 함수처럼 사용할 때 호출되는 메서드
+    # ex) a = A(), a()
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
             cls._instances[cls] = super(MetaSingleton, cls).__call__(*args, **kwargs)
@@ -396,4 +398,57 @@ print(book2)
 > ##### 출력 결과
 
 <img width="272" alt="스크린샷 2020-01-02 오후 11 43 24" src="https://user-images.githubusercontent.com/19590371/71672561-b1002d80-2db9-11ea-8a7e-e55dd5947b80.png">
+
+
+
+### 5. Examples
+
+#### 데이터베이스
+
+- 여러 서비스가 한 개의 DB를 공유하는 구조
+- 안정된 서비스를 위해
+  - DB의 일관성을 보존해야 하며, **연산간 충돌**이 없어야 한다.
+  - 다수의 DB 연산을 처리하려면 메모리와 CPU를 효율적으로 사용해야 한다.
+
+
+
+> ##### 싱글턴을 통해 하나의 DB 접속 객체 생성
+
+```python
+import sqlite3
+
+# 객체를 싱글턴으로 만드는 역할
+class MetaSingleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(MetaSingleton, cls).__call__(*args, **kwargs)
+        
+        return cls._instances[cls]
+
+
+# MetaSingleton으로 인해 1개의 Database 객체만 생성
+class Database(metaclass=MetaSingleton):
+    connection = None
+
+    def connect(self):
+        if self.connection is None:
+            self.connection = sqlite3.connect("db.sqlite3")
+            self.cursorobj = self.connection.cursor()
+
+        return self.cursorobj
+
+
+db1 = Database().connect()
+db2 = Database().connect()
+
+print(db1)
+print(db2)
+
+```
+
+1. `MetaSingleton` 메타 클래스에 의해 `Database` 객체는 싱글턴으로 생성
+2. 웹 앱이 DB 요청을 할 때 마다 `Database` 클래스 객체를 한개만 생성하여 DB 동기화를 보장
+   - 리소스를 하나만 사용하여 CPU, 메모리 효율적 사용
 
