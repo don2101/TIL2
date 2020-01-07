@@ -1,6 +1,5 @@
 class StatusCheck:
     _instance = None
-    _servers = []
     
     def __new__(cls, *args, **kwargs):
         if not StatusCheck._instance:

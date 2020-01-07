@@ -317,6 +317,7 @@ class Car:
 print(type(Car))
 
 # 출력 결과
+
 <class 'type'>
 ```
 
@@ -344,11 +345,13 @@ print(type(Car))
 
 ```python
 # type을 통해 Wing 클래스를 생성하고 A에 저장
+
 A = type("Wing", (), {"x": 1})
 print(A)
 print(A.__dict__)
 
 # A를 통해 Wing class의 인스턴스를 생성 후 a1에저장, 값을 확인
+
 a1 = A()
 print(a1.x)
 ```
@@ -375,6 +378,7 @@ class MetaSingleton(type):
 		
     # 클래스를 함수처럼 사용할 때 호출되는 메서드
     # ex) a = A(), a()
+    
     def __call__(cls, *args, **kwargs):
         if cls not in cls._instances:
             cls._instances[cls] = super(MetaSingleton, cls).__call__(*args, **kwargs)
@@ -418,6 +422,7 @@ print(book2)
 import sqlite3
 
 # 객체를 싱글턴으로 만드는 역할
+
 class MetaSingleton(type):
     _instances = {}
 
@@ -429,6 +434,7 @@ class MetaSingleton(type):
 
 
 # MetaSingleton으로 인해 1개의 Database 객체만 생성
+
 class Database(metaclass=MetaSingleton):
     connection = None
 
@@ -451,4 +457,80 @@ print(db2)
 1. `MetaSingleton` 메타 클래스에 의해 `Database` 객체는 싱글턴으로 생성
 2. 웹 앱이 DB 요청을 할 때 마다 `Database` 클래스 객체를 한개만 생성하여 DB 동기화를 보장
    - 리소스를 하나만 사용하여 CPU, 메모리 효율적 사용
+
+
+
+#### 인프라 상태 확인
+
+```python
+class StatusCheck:
+    _instance = None
+    
+    # 싱글턴으로 StatueCheck 객체 생성
+    # 클래스 메서드인 __new__를 사용
+    
+    def __new__(cls, *args, **kwargs):
+        if not StatusCheck._instance:
+            StatusCheck._instance = super(StatusCheck, cls).__new__(cls, *args, **kwargs)
+
+        return StatusCheck._instance
+
+    # 싱글턴에서 공동으로 공유하는 자원
+    
+    def __init__(self):
+        self._servers = []
+		
+    def addServer(self):
+        self._servers.append("Server 1")
+        self._servers.append("Server 2")
+        self._servers.append("Server 3")
+        self._servers.append("Server 4")
+
+    def changeServer(self):
+        self._servers.pop()
+        self._servers.append("Server 5")
+
+# 동일한 두 객체
+
+status_check1 = StatusCheck()
+status_check2 = StatusCheck()
+
+status_check1.addServer()
+print("Schedule statue check for servers (1)")
+
+for i in range(4):
+    print("Checking ", status_check1._servers[i])
+
+status_check2.changeServer()
+print("Schedule statue check for servers (2)")
+
+for i in range(4):
+    print("Checking ", status_check2._servers[i])
+
+```
+
+
+
+> ##### 실행 결과
+
+<img width="277" alt="스크린샷 2020-01-07 오후 11 42 35" src="https://user-images.githubusercontent.com/19590371/71903443-7296b400-31a7-11ea-903d-25de6c2558c5.png">
+
+- 동일한 객체 `status_check1`, `status_check2` 에서 `_servers` 배열을 조작
+
+
+
+### 6. 정리
+
+#### 싱글턴의 단점
+
+- 같은 객체에 여러 참조자가 있을 수 있다.
+- 전역 객체에 종속적인 클래스간 관계가 복잡하며, 전역 객체 수정이 다른 클래스에 영향을 미칠 수 있다.
+
+
+
+#### 싱글턴을 사용하는 상황
+
+- 어플리케이션에서 풀, 캐시, 설정 등 한 개의 객체만 필요한 경우에 생성하여 사용
+- 글로벌 액세스를 제공해야 하는 경우
+- **클래스 객체가 한 개만 필요한 경우**에 사용
 
