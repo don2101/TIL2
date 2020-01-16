@@ -23,7 +23,7 @@ class Bank(Payment):
     def __check_money(self):
         print("Check", self.__get_account(), "has enough money")
 
-        return True
+        return False
 
     def set_card(self, card):
         self.card = card
