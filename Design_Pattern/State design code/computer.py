@@ -46,7 +46,7 @@ class Computer(object):
         self.state.switch(state)
 
 
-# 클래스 자체를 삽입하여 
+# 클래스 자체를 삽입하여 State를 동적으로 변화
 computer = Computer()
 computer.change(On)
 computer.change(Off)
